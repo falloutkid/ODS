@@ -19,5 +19,23 @@ namespace UnitTestProject
                 Assert.AreEqual(except, Math.Pow(input, 2));
             });
         }
+
+        [TestMethod]
+        public void TestQueue()
+        {
+            ArrayQueue<int> target = new ArrayQueue<int>(3);
+
+            for(int i = 0;i < 10; i++)
+            {
+                target.Enqueue(i);
+            }
+
+            int size = target.getQueueSize();
+
+            for(int i = 0;i < size; i++)
+            {
+                Assert.AreEqual(i, target.Dequeue());
+            }
+        }
     }
 }

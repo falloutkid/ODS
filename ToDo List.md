@@ -88,6 +88,102 @@ T remove<T>(ref T[] a, ref int n, int i)
 >将来的な最適化も実施されることが考えられるため、こちらを使用しておいたほうが良い
 
 ## 2.3 ArrayQueue：配列を使ったキュー
+
+>キューQueue  
+>コンピュータの基本的なデータ構造の一つで、データを先入れ先出し(FIFO:First In First Out)のリスト構造で保持するもの
+
+Queue構造はデータを追加する方向と出力する方向が別々のため、ArrayStackでの実装は向いていない。もし実現をしようとすると、追加・削除の命令でリストの先頭を変更する必要がある。
+
+Queueを実現する方法として考えられる方法はリングバッファを用いた擬似的な無限配列を構築する。
+
+| リングバッファを使ったQueueの実現 |
+|----|
+| ![](画像\Queue.jpg) |
+
+- Head：配列の先頭
+	- 図の青い矢印
+	- 出力する配列の位置を示す
+- Tail：配列の末尾
+	- 図の白い矢印
+	- Queueの末尾＋1の場所を示す
+	- 新しい要素が追加される場所を示す
+- n：格納しているデータ数
+	- $n=Tail - Head$
+
+「**無限配列**」と示した理由は、**HeadとTailの値は加算し続ける**ことで擬似的に無限配列としている。ここでは、$a = r+km$ を満たす数値内で配列を操作する
+
+| 要素 | 説明 |
+|----|----|
+| a | Head/Tailを表現するインデックス |
+| m | 確保しているメモリのサイズ |
+| r | $r \in 0,\cdots,m-1$ |
+| k | 定数で、$k=\lfloor \dfrac{a}{m} \rfloor$ |
+
+この方法の問題点はリングバッファで格納した配列数までしかデータを格納できないことである。これに対応するためには、追加をするときにリングバッファが一杯かを確認し、必要に応じてresizeを実行する。
+
+| Queueのリサイズ |
+|----|
+| ![](画像\Queue2.jpg) |
+
+```cs
+public class ArrayQueue<T>
+{
+    int head_;
+    int tail_;
+    T[] array_;
+
+    int max_array_size_;
+
+    public ArrayQueue(int array_size)
+    {
+        head_ = 0;
+        tail_ = 0;
+        max_array_size_ = array_size;
+
+        array_ = new T[max_array_size_];
+    }
+
+    public int getQueueSize()
+    {
+        return tail_ - head_;
+    }
+
+    public void Enqueue(T input)
+    {
+        if (getQueueSize() + 1 > max_array_size_)
+            resize();
+
+        array_[tail_ % max_array_size_] = input;
+        tail_++;
+    }
+
+    private void resize()
+    {
+        T[] new_array = new T[max_array_size_ * 2];
+        for(int i = 0; i < max_array_size_; i++)
+        {
+            new_array[i] = array_[(head_ + i) % max_array_size_];
+        }
+        tail_ = getQueueSize();
+        head_ = 0;
+        max_array_size_ *= 2;
+        array_ = new_array;
+    }
+
+    public T Dequeue()
+    {
+        if (getQueueSize() == 0)
+            return default(T);
+
+        T return_code = array_[head_ % max_array_size_];
+        head_++;
+        return return_code;
+    }
+}
+```
+
+ArrayQueueの場合はArrayStackのように開始位置が固定でないため、簡単にリサイズをすることが出来ない。
+
 ## 2.4 ArrayDeque：配列を使った高速な双方向キュー
 ## 2.5 DualArrayDeque：2つのスタックから作った双方向キュー
 ## 2.6 RootishArrayStack：空間効率に優れた配列スタック

@@ -73,4 +73,59 @@ namespace ODS
             return x;
         }
     }
+
+    public class ArrayQueue<T>
+    {
+        int head_;
+        int tail_;
+        T[] array_;
+
+        int max_array_size_;
+
+        public ArrayQueue(int array_size)
+        {
+            head_ = 0;
+            tail_ = 0;
+            max_array_size_ = array_size;
+
+            array_ = new T[max_array_size_];
+        }
+
+        public int getQueueSize()
+        {
+            return tail_ - head_;
+        }
+
+        public void Enqueue(T input)
+        {
+            if (getQueueSize() + 1 > max_array_size_)
+                resize();
+
+            array_[tail_ % max_array_size_] = input;
+            tail_++;
+        }
+
+        private void resize()
+        {
+            T[] new_array = new T[max_array_size_ * 2];
+            for(int i = 0; i < max_array_size_; i++)
+            {
+                new_array[i] = array_[(head_ + i) % max_array_size_];
+            }
+            tail_ = getQueueSize();
+            head_ = 0;
+            max_array_size_ *= 2;
+            array_ = new_array;
+        }
+
+        public T Dequeue()
+        {
+            if (getQueueSize() == 0)
+                return default(T);
+
+            T return_code = array_[head_ % max_array_size_];
+            head_++;
+            return return_code;
+        }
+    }
 }
