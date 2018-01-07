@@ -1,4 +1,19 @@
+[元サイト](http://opendatastructures.org/)
+
 # 第2章 配列を使ったリスト
+
+実行時間の比較
+
+|  | get(i) | set(i,x) | add(i,x) | remove(i) |
+|----|----|----|----|----|
+| ArrayStack | $O(1)$ | $O(1)$ | $O(1+n-i)$ | $O(1+n-i)$ |
+| FastArrayStack | $O(1)$ | $O(1)$ | $O(1+n-i)$ | $O(1+n-i)$ |
+| ArrayQueue | $O(1)$ | $O(1)$ | $O(1)$ | $O(1)$ |
+| ArrayDeque | $O(1)$ | $O(1)$ | $O(1+\min(i, n-i))$ | $O(1+\min(i, n-i))$ |
+| DualArrayDeque |  |  |  |  |
+| RootishArrayStack |  |  |  |  |
+
+ArrayQueueのresize関数の実行時間は $O(m)$ である。
 
 ## 2.1 ArrayStack：配列を使った高速なスタック操作
 
@@ -182,9 +197,80 @@ public class ArrayQueue<T>
 }
 ```
 
-ArrayQueueの場合はArrayStackのように開始位置が固定でないため、簡単にリサイズをすることが出来ない。
+ArrayQueueの場合はArrayStackのように開始位置が固定でないため、簡単にリサイズをすることが出来ない。」
 
 ## 2.4 ArrayDeque：配列を使った高速な双方向キュー
+
+ArrayQueueは一方の端から入力、他方の端から出力をするメモリ構造である。ArrayDequeは、両端から入力と出力が出来るデータ構造である。
+
+ArrayDequeはArrayQueueのように入力先を終端に固定するのではなく、入力先を指定することが出来る。
+
+| ArrayDequeの動作 |
+|----|
+| ![](画像\ArrayDeque.jpg) |
+
+```cs
+public class ArrayDeque<T>:Queue<T>
+{
+    public ArrayDeque(int array_size):base(array_size)
+    {
+    }
+
+    public T get(int index)
+    {
+        return array_[(head_ + index) % array_.Length];
+    }
+
+    public T set(int index, T set_value)
+    {
+        T return_code = array_[(head_ + index) % array_.Length];
+        array_[(head_ + index) % array_.Length] = set_value;
+        return return_code;
+    }
+
+    public void add(int index, T set_value)
+    {
+        if (getQueueSize() + 1 > max_array_size_)
+            resize();
+        if (index < getQueueSize() / 2)
+        { // shift array_[0],..,array_[i-1] left one position
+            head_ = (head_ == 0) ? array_.Length - 1 : head_ - 1; //(head_ - 1) mod array_.Length 
+            for (int k = 0; k <= index - 1; k++)
+                array_[(head_ + k) % array_.Length] = array_[(head_ + k + 1) % array_.Length];
+        }
+        else
+        { // shift array_[i],..,array_[n-1] right one position
+            for (int k = getQueueSize(); k > index; k--)
+                array_[(head_ + k) % array_.Length] = array_[(head_ + k - 1) % array_.Length];
+            tail_++;
+        }
+        array_[(head_ + index) % array_.Length] = set_value;
+    }
+
+    public T remove(int index)
+    {
+        T return_code = array_[(head_ + index) % array_.Length];
+        if (index < getQueueSize() / 2)
+        { // shift array_[0],..,array_[i-1] left one position 
+            for (int k = index; k > 0; k--)
+                array_[(head_ + k) % array_.Length] = array_[(head_ + k - 1) % array_.Length];
+            head_++;
+        }
+        else
+        { // shift array_[i],..,array_[n-1] right one position
+            for (int k = index; k > getQueueSize() - 1; k++)
+                array_[(head_ + k) % array_.Length] = array_[(head_ + k + 1) % array_.Length];
+            tail_--;
+        }
+        if (3 * getQueueSize() < max_array_size_)
+            resize();
+        return return_code;
+    }
+}
+```
+
+計算の効率を考えて $\dfrac{getQueueSize()}{2}$ (格納されているデータの半分)でシフトをする位置を変更している
+
 ## 2.5 DualArrayDeque：2つのスタックから作った双方向キュー
 ## 2.6 RootishArrayStack：空間効率に優れた配列スタック
 ## 2.7 ディスカッションと練習問題
